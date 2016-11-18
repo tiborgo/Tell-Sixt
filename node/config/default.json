@@ -1,6 +1,6 @@
 {
-    "appSecret": "",
-    "pageAccessToken": "",
-    "validationToken": "",
-    "serverURL": ""
+    "appSecret": "x",
+    "pageAccessToken": "x",
+    "validationToken": "x",
+    "serverURL": "x"
 }
