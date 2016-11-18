@@ -1,6 +1,6 @@
 {
-    "appSecret": "x",
+    "appSecret": "66c76da20e4aead094e77293a829b2fb",
     "pageAccessToken": "EAANWfYr8LRQBAApztqC4aY9bTcgseoHhqstgBgDmc6SLQzapLNGsjwSFOSz9ZBZCHsgSZAtase6DHHZCbQP6qA3ZAsLjolZBFZAJaFcYWkOVP97SfvZBkLztImSQcTEb4XiNeTy6oqIMVAFfQ8UzGcvmb9w40F8wdD8YoJJWchtMUwZDZD",
     "validationToken": "X0XuYjxfBLPYhMhWzZWo",
-    "serverURL": "x"
+    "serverURL": "https://facebook-messenger-test-bot.herokuapp.com"
 }
