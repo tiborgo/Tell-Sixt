@@ -10,7 +10,7 @@
 /* jshint node: true, devel: true */
 'use strict';
 
-const 
+const
   bodyParser = require('body-parser'),
   config = require('config'),
   crypto = require('crypto'),
@@ -255,8 +255,8 @@ function receivedMessage(event) {
     // keywords and send back the corresponding example. Otherwise, just echo
     // the text we received.
     switch (messageText) {
-      case 'Hey, Sixt!'
-        sendIntroMessage(senderID);
+        case 'Hey, Sixt!':
+        sendGifMessage(senderID);
         break;
 
       /*case 'image':
@@ -409,7 +409,7 @@ function receivedAccountLink(event) {
 }
 
 
-function sendIntroMessage(recipientId) {
+function sendGifMessage(recipientId) {
   var messageData = {
     recipient: {
       id: recipientId
@@ -451,7 +451,7 @@ function sendImageMessage(recipientId) {
 /*
  * Send a Gif using the Send API.
  *
- */
+ 
 function sendGifMessage(recipientId) {
   var messageData = {
     recipient: {
@@ -469,7 +469,7 @@ function sendGifMessage(recipientId) {
 
   callSendAPI(messageData);
 }
-
+*/
 /*
  * Send audio using the Send API.
  *
