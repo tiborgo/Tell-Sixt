@@ -37,6 +37,10 @@ app.get('/getoffers', function(req, res) {
   	});
 });
 
+app.get('/', function(req, res) {
+	res.sendFile(__dirname + "/index.html");
+});
+
 function getOffers(offerRequest, callback) {
 
 	// Request location.
