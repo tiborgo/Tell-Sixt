@@ -16,7 +16,15 @@ var io = require('socket.io').listen(server);
 
 var conns = [];
 
-var prevOfferRequest = {};
+var prevOfferRequest = {
+	pickupLocation: 'Munich',
+	pickupDate: new Date(),
+	returnDate: new Date()
+};
+prevOfferRequest.pickupDate.setHours(12);
+prevOfferRequest.returnDate.setHours(12);
+prevOfferRequest.pickupDate.setDate(prevOfferRequest.pickupDate.getDate() + 7);
+prevOfferRequest.returnDate.setDate(prevOfferRequest.returnDate.getDate() + 10);
 
 app.set('port', process.env.PORT || 5000);
 server.listen(app.get('port'), function() {
@@ -27,27 +35,32 @@ app.use(express.static('public'));
 
 app.get('/getoffers', function(req, res) {
 
-	var pickupLocation = req.query.pickupLocation;
-	var pickupDate = new Date(req.query.pickupDate);
-	var returnDate = new Date(req.query.returnDate);
 	var status = req.query.status;
+	var offerRequest = {};
 
-	var offerRequest = {
-		pickupLocation: pickupLocation,
-		pickupDate: pickupDate,
-		returnDate: returnDate
-	};
+	if (status == 'usual') {
+		offerRequest = prevOfferRequest;
+	}
+	else {
+		offerRequest = {
+			pickupLocation: req.query.pickupLocation,
+			pickupDate: new Date(req.query.pickupDate),
+			returnDate: new Date(req.query.returnDate)
+		};
+	}
 
-	var pickupDateStr = dateFormat(pickupDate, "dddd, mmmm dS, yyyy, h TT");
-	var returnDateStr = dateFormat(returnDate, "dddd, mmmm dS, yyyy, h TT");
+	console.log(offerRequest);
 
-	if (status == 'new' || !('pickupLocation' in prevOfferRequest)) {
-		sendChatMessage('Ask Sixt to book a car in ' + pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
-		sendChatMessage('Ok, I’m looking for offers in ' + pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
+	var pickupDateStr = dateFormat(offerRequest.pickupDate, "dddd, mmmm dS, h:MM TT");
+	var returnDateStr = dateFormat(offerRequest.returnDate, "dddd, mmmm dS, h:MM TT");
+
+	if (status == 'new') {
+		sendChatMessage('Ask Sixt to book a car in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
+		sendChatMessage('Ok, I’m looking for offers in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
 	}
 	else if (status == 'usual') {
 		sendChatMessage('Ask Sixt to book a car.', 'user');
-		sendChatMessage('Ok, I’m looking for your usual request: in ' + pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
+		sendChatMessage('Ok, I’m looking for your usual request: in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
 	}
 	else if (status == 'change') {
 		var message = 'Ok, I’m looking for offers ';
@@ -67,10 +80,10 @@ app.get('/getoffers', function(req, res) {
 		sendChatMessage(message, 'bot');
 	}
 
-	getOffers(offerRequest, function(offer) {
-     	res.setHeader('Content-Type', 'application/json');
-      	res.send(JSON.stringify(offer, null, 3));
-  	});
+	getOffers(offerRequest, function(offers) {
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify(offers, null, 3));
+	});
 });
 
 app.get('/confirm', function(req, res) {
@@ -102,14 +115,15 @@ function getOffers(offerRequest, callback) {
 		else {
 			bodyLocation = JSON.parse(bodyLocation);
 
-			if (!bodyLocation.downtownStations 
-				|| !(bodyLocation.downtownStations instanceof Array)
-				|| bodyLocation.downtownStations.length == 0
-				|| !bodyLocation.downtownStations[0].identifier) {
+			if (!bodyLocation.downtownStations
+				|| bodyLocation.downtownStations.length == 0) {
 				resp.status(500).send({ error: 'Did not get a downtown station' })
 			}
 			else {
-				var pickupLocationId = bodyLocation.downtownStations[0].identifier;
+				var stations = (bodyLocation.airportStations && bodyLocation.airportStations.length > 0) ?
+					bodyLocation.airportStations :
+					bodyLocation.downtownStations;
+				var pickupLocationId = stations[0].identifier;
 
 				// Request offer.
 				// TODO: flexi price.
@@ -121,8 +135,8 @@ function getOffers(offerRequest, callback) {
 					var carExample = bodyOffer.offers[0].group.modelExample;
 
 					var offer = {
-			    		pickupLocation: bodyLocation.downtownStations[0].name,
-			    		returnLocation: bodyLocation.downtownStations[0].name,
+			    		pickupLocation: stations[0].name,
+			    		returnLocation: stations[0].name,
 			    		pickupDate: offerRequest.pickupDate,
 					    returnDate: offerRequest.returnDate,
 					    price: price,
@@ -151,7 +165,7 @@ io.on('connection', function(socket) {
 });
 
 function sendChatMessage(message, sender) {
-	for(var i = 0; i < conns.length; i++){
+	for(var i = 0; i < conns.length; i++) {
         conns[i].emit('chat', {
         	text: message,
         	sender: sender,
