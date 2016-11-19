@@ -15,7 +15,7 @@ app.use(express.static('public'));
 
 app.get('/bookcar', function(req, res) {
 
-	bookCar({
+	getOffers({
 			pickupLocation: 'Muenchen',
 			pickupDate: new Date(2016, 11, 20, 8),
 			returnDate: new Date(2016, 11, 23, 8)
@@ -25,7 +25,7 @@ app.get('/bookcar', function(req, res) {
   	});
 });
 
-function bookCar(offerRequest, callback) {
+function getOffers(offerRequest, callback) {
 
 	// Request location.
 	// TODO: take closest location.
@@ -41,15 +41,15 @@ function bookCar(offerRequest, callback) {
 			bodyOffer = JSON.parse(bodyOffer);
 
 			var offer = {
-	    		pickup_location: bodyLocation.downtownStations[0].name,
-	    		return_location: bodyLocation.downtownStations[0].name,
-	    		pickup_date: offerRequest.pickupDate,
-			    return_date: offerRequest.returnDate,
+	    		pickupLocation: bodyLocation.downtownStations[0].name,
+	    		returnLocation: bodyLocation.downtownStations[0].name,
+	    		pickupDate: offerRequest.pickupDate,
+			    returnDate: offerRequest.returnDate,
 			    price: bodyOffer.offers[0].rates[0].price.totalPrice,
-			    car_exmaple: bodyOffer.offers[0].group.modelExample
+			    carExmaple: bodyOffer.offers[0].group.modelExample
 			};
 
-			callback(offer);
+			callback([offer]);
 		});
 	});
 }
