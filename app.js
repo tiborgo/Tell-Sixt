@@ -858,7 +858,8 @@ app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
 
-function bookCar(pickup_location, pickup_date, return_date, callback) {
+// pickup_location, pickup_date, return_date,
+function bookCar(callback) {
   var offer = {
     pickup_location: "Munich Airport",
     return_location: "Munich Airport",
