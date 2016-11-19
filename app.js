@@ -17,14 +17,12 @@ app.get('/getoffers', function(req, res) {
 
 	var pickupLocation = req.query.pickupLocation;
 	var pickupDate = new Date(req.query.pickupDate);
-
-	console.log(pickupLocation);
-	console.log(pickupDate);
+	var returnDate = new Date(req.query.returnDate);
 
 	getOffers({
 			pickupLocation: pickupLocation,
-			pickupDate: new Date(2016, 11, 20, 8),
-			returnDate: new Date(2016, 11, 23, 8)
+			pickupDate: pickupDate,
+			returnDate: returnDate
 		}, function(offer) {
      	res.setHeader('Content-Type', 'application/json');
       	res.send(JSON.stringify(offer, null, 3));
@@ -35,19 +33,15 @@ function getOffers(offerRequest, callback) {
 
 	// Request location.
 	// TODO: take closest location.
-
 	var options = {
 	 	url: 'https://app.sixt.de/php/mobilews/v4/stationsuggestion?address=' + offerRequest.pickupLocation,
 	  	headers: {
-	    	//'User-Agent': 'request'
 	    	'Accept-Language': 'en_US'
 	  	}
 	};
 
 	request(options, function(error, resp, bodyLocation) {
 		bodyLocation = JSON.parse(bodyLocation);
-
-		//console.log(resp);
 
 		var pickupLocationId = bodyLocation.downtownStations[0].identifier;
 
@@ -72,7 +66,7 @@ function getOffers(offerRequest, callback) {
 }
 
 app.listen(app.get('port'), function() {
-  console.log('Node app is running on port', app.get('port'));
+ 	console.log('Node app is running on port', app.get('port'));
 });
 
 module.exports = app;
