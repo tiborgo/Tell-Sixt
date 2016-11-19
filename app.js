@@ -49,8 +49,6 @@ app.get('/getoffers', function(req, res) {
 		};
 	}
 
-	console.log(offerRequest);
-
 	var pickupDateStr = dateFormat(offerRequest.pickupDate, "dddd, mmmm dS, h:MM TT");
 	var returnDateStr = dateFormat(offerRequest.returnDate, "dddd, mmmm dS, h:MM TT");
 
@@ -80,7 +78,10 @@ app.get('/getoffers', function(req, res) {
 		sendChatMessage(message, 'bot');
 	}
 
-	getOffers(offerRequest, function(offers) {
+	getOffers(offerRequest, function(error, offers) {
+		if (error) {
+			resp.status(500).send({ error: 'Error getting offers' });
+		}
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify(offers, null, 3));
 	});
@@ -110,46 +111,57 @@ function getOffers(offerRequest, callback) {
 
 	request(options, function(error, resp, bodyLocation) {
 		if (error) {
-			resp.status(500).send({ error: 'Cannot get next station ID' })
+			callback(error, null);
+			return;
 		}
-		else {
-			bodyLocation = JSON.parse(bodyLocation);
 
-			if (!bodyLocation.downtownStations
-				|| bodyLocation.downtownStations.length == 0) {
-				resp.status(500).send({ error: 'Did not get a downtown station' })
-			}
-			else {
-				var stations = (bodyLocation.airportStations && bodyLocation.airportStations.length > 0) ?
-					bodyLocation.airportStations :
-					bodyLocation.downtownStations;
-				var pickupLocationId = stations[0].identifier;
+		bodyLocation = JSON.parse(bodyLocation);
 
-				// Request offer.
-				// TODO: flexi price.
-				// TODO: cheapest offer.
-				request('https://app.sixt.de/php/mobilews/v4/offerlist?pickupStation=' + pickupLocationId + '&returnStation=' + pickupLocationId + '&pickupDate=' + offerRequest.pickupDate.toISOString() + '&returnDate=' + offerRequest.returnDate.toISOString(), function(error, resp, bodyOffer) {
-					bodyOffer = JSON.parse(bodyOffer);
-
-					var price = bodyOffer.offers[0].rates[0].price.totalPrice;
-					var carExample = bodyOffer.offers[0].group.modelExample;
-
-					var offer = {
-			    		pickupLocation: stations[0].name,
-			    		returnLocation: stations[0].name,
-			    		pickupDate: offerRequest.pickupDate,
-					    returnDate: offerRequest.returnDate,
-					    price: price,
-					    carExample: carExample
-					};
-
-					// TODO: decide between 'a' and 'an'.
-					sendChatMessage('I can offer you a(n) ' + carExample + ' or similar for € ' + price + '. Should I book it now?', 'bot');
-		            
-					callback([offer]);
-				});
-			}
+		if (!bodyLocation.downtownStations
+			|| bodyLocation.downtownStations.length == 0) {
+			callback({ error: 'Did not get a downtown station' }, null);
+			return;
 		}
+
+		var stations = (bodyLocation.airportStations && bodyLocation.airportStations.length > 0) ?
+			bodyLocation.airportStations :
+			bodyLocation.downtownStations;
+		var pickupLocationId = stations[0].identifier;
+
+		// Request offer.
+		// TODO: flexi price.
+		// TODO: cheapest offer.
+		request('https://app.sixt.de/php/mobilews/v4/offerlist?pickupStation=' + pickupLocationId + '&returnStation=' + pickupLocationId + '&pickupDate=' + offerRequest.pickupDate.toISOString() + '&returnDate=' + offerRequest.returnDate.toISOString(), function(error, resp, bodyOffer) {
+			if (error) {
+				callback(error, null);
+				return;
+			}
+				bodyOffer = JSON.parse(bodyOffer);
+
+			if (!bodyOffer.offers || bodyOffer.offers.size == 0
+				|| !bodyOffer.offers[0].rates || bodyOffer.offers[0].rates.size == 0
+				|| !bodyOffer.offers[0].rates[0].price || !bodyOffer.offers[0].rates[0].price.totalPrice
+				|| !bodyOffer.offers[0].group || !bodyOffer.offers[0].group.modelExample) {
+				callback({ error: "Could not get price or car example"}, null);
+				return;
+			}
+			var price = bodyOffer.offers[0].rates[0].price.totalPrice;
+			var carExample = bodyOffer.offers[0].group.modelExample;
+
+			var offer = {
+	    		pickupLocation: stations[0].name,
+	    		returnLocation: stations[0].name,
+	    		pickupDate: offerRequest.pickupDate,
+			    returnDate: offerRequest.returnDate,
+			    price: price,
+			    carExample: carExample
+			};
+
+			// TODO: decide between 'a' and 'an'.
+			sendChatMessage('I can offer you a(n) ' + carExample + ' or similar for € ' + price + '. Should I book it now?', 'bot');
+            
+			callback(null, [offer]);
+		});
 	});
 
 	prevOfferRequest = offerRequest;
