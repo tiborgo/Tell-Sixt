@@ -49,6 +49,8 @@ app.get('/getoffers', function(req, res) {
 		};
 	}
 
+	console.log(offerRequest);
+
 	var pickupDateStr = dateFormat(offerRequest.pickupDate, "dddd, mmmm dS, h:MM TT");
 	var returnDateStr = dateFormat(offerRequest.returnDate, "dddd, mmmm dS, h:MM TT");
 
@@ -72,7 +74,7 @@ app.get('/getoffers', function(req, res) {
 
 	getOffers(offerRequest, function(error, offers) {
 		if (error) {
-			resp.status(500).send({ error: 'Error getting offers' });
+			res.status(500).send({ error: 'Error getting offers' });
 		}
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify(offers, null, 3));
