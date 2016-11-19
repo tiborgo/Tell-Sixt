@@ -57,7 +57,7 @@ function getOffers(offerRequest, callback) {
 	    		pickupDate: offerRequest.pickupDate,
 			    returnDate: offerRequest.returnDate,
 			    price: bodyOffer.offers[0].rates[0].price.totalPrice,
-			    carExmaple: bodyOffer.offers[0].group.modelExample
+			    carExample: bodyOffer.offers[0].group.modelExample
 			};
 
 			callback([offer]);
