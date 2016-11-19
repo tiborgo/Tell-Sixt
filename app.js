@@ -14,14 +14,15 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 app.get('/bookcar', function(req, res) {
-    bookCar(function(offer) {
-      res.setHeader('Content-Type', 'application/json');
-      res.send(JSON.stringify(offer, null, 3));
-  });
+
+	bookCar('11', function(offer) {
+     	res.setHeader('Content-Type', 'application/json');
+      	res.send(JSON.stringify(offer, null, 3));
+  	});
 });
 
-// pickup_location, pickup_date, return_date,
-function bookCar(callback) {
+// pickup_date, return_date, 
+function bookCar(pickup_location, callback) {
   var offer = {
     pickup_location: "Munich Airport",
     return_location: "Munich Airport",
@@ -30,7 +31,11 @@ function bookCar(callback) {
     price: 59.99,
     car_exmaple: "3er BMW"
   };
-  callback(offer);
+
+	request('https://app.sixt.de/php/mobilews/v4/offerlist?pickupStation=' + pickup_location + '&returnStation=' + pickup_location + '&pickupDate=2016-12-06T11:00:00+0100&returnDate=2016-12-09T11:00:00+0100', function(error, resp, body) {
+		body = JSON.parse(body);
+		callback(body);
+	});
 }
 
 app.listen(app.get('port'), function() {
