@@ -256,7 +256,7 @@ function receivedMessage(event) {
     // the text we received.
     switch (messageText) {
         case 'Hey, Sixt!':
-        sendGifMessage(senderID);
+        sendIntroMessage(senderID);
         break;
 
       /*case 'image':
@@ -409,13 +409,13 @@ function receivedAccountLink(event) {
 }
 
 
-function sendGifMessage(recipientId) {
+function sendIntroMessage(recipientId) {
   var messageData = {
     recipient: {
       id: recipientId
     },
     message: {
-      text: "Hey, customer!,
+      text: "Hey, customer!",
       metadata: "DEVELOPER_DEFINED_METADATA"
     }
   };
