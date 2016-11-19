@@ -1,0 +1,13 @@
+{
+    "name": "example",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "dependencies": {
+        "alexa-app": "^2.3.4",
+        "request": "^2.72.0",
+        "dateformat": "*"
+    },
+    "author": "Team2",
+    "license": "Apache-2.0"
+}
