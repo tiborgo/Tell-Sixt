@@ -5,20 +5,32 @@ const
   config = require('config'),
   crypto = require('crypto'),
   express = require('express'),
-  https = require('https'),  
+  http = require('http'),  
   request = require('request');
 
 var app = express();
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
+
+var conns = [];
+
 app.set('port', process.env.PORT || 5000);
-app.set('view engine', 'ejs');
+server.listen(app.get('port'), function() {
+ 	console.log('Node app is running on port', app.get('port'));
+});
+
 app.use(express.static('public'));
 
-app.get('/bookcar', function(req, res) {
+app.get('/getoffers', function(req, res) {
+
+	var pickupLocation = req.query.pickupLocation;
+	var pickupDate = new Date(req.query.pickupDate);
+	var returnDate = new Date(req.query.returnDate);
 
 	getOffers({
-			pickupLocation: 'Muenchen',
-			pickupDate: new Date(2016, 11, 20, 8),
-			returnDate: new Date(2016, 11, 23, 8)
+			pickupLocation: pickupLocation,
+			pickupDate: pickupDate,
+			returnDate: returnDate
 		}, function(offer) {
      	res.setHeader('Content-Type', 'application/json');
       	res.send(JSON.stringify(offer, null, 3));
@@ -29,7 +41,14 @@ function getOffers(offerRequest, callback) {
 
 	// Request location.
 	// TODO: take closest location.
-	request('https://app.sixt.de/php/mobilews/v4/stationsuggestion?address=' + offerRequest.pickupLocation, function(error, resp, bodyLocation) {
+	var options = {
+	 	url: 'https://app.sixt.de/php/mobilews/v4/stationsuggestion?address=' + offerRequest.pickupLocation,
+	  	headers: {
+	    	'Accept-Language': 'en_US'
+	  	}
+	};
+
+	request(options, function(error, resp, bodyLocation) {
 		bodyLocation = JSON.parse(bodyLocation);
 
 		var pickupLocationId = bodyLocation.downtownStations[0].identifier;
@@ -46,7 +65,7 @@ function getOffers(offerRequest, callback) {
 	    		pickupDate: offerRequest.pickupDate,
 			    returnDate: offerRequest.returnDate,
 			    price: bodyOffer.offers[0].rates[0].price.totalPrice,
-			    carExmaple: bodyOffer.offers[0].group.modelExample
+			    carExample: bodyOffer.offers[0].group.modelExample
 			};
 
 			callback([offer]);
@@ -54,8 +73,13 @@ function getOffers(offerRequest, callback) {
 	});
 }
 
-app.listen(app.get('port'), function() {
-  console.log('Node app is running on port', app.get('port'));
+// Websocket.
+io.on('connection', function(socket) {
+	conns.push(socket);
+	socket.emit('chat', {
+		text: "You are connected!"
+	});
+	console.log('a user connected');
 });
 
 module.exports = app;
