@@ -1,5 +1,8 @@
 var socket = io();
 
+var audioElement = document.createElement('audio');
+audioElement.setAttribute('src', 'sound2.mp3');
+
 socket.on('chat', function (msg) {
     console.log(msg);
 
@@ -18,6 +21,8 @@ socket.on('chat', function (msg) {
 
 
     } else if (msg.sender == "bot") {
+        audioElement.play();
+
         msg.time = new Date(msg.time);
         var print_date = msg.time.getHours() + ':' + msg.time.getMinutes() + ', ' + msg.time.getDay() + '.' + msg.time.getMonth();
 
@@ -31,5 +36,10 @@ socket.on('chat', function (msg) {
 
         $('#messages').append(html);
     }
+    //  $("#history").scrollTop($("#history")[0].scrollHeight);
+
+    $('#history').stop().animate({
+        scrollTop: $('#history')[0].scrollHeight
+    }, 800);
 
 });
