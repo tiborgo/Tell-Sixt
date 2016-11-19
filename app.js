@@ -7,6 +7,8 @@ const
   express = require('express'),
   http = require('http'),  
   request = require('request');
+ 
+var dateFormat = require('dateformat');
 
 var app = express();
 var server = http.createServer(app);
@@ -36,16 +38,16 @@ app.get('/getoffers', function(req, res) {
 		returnDate: returnDate
 	};
 
-	console.log(prevOfferRequest);
-	console.log(offerRequest);
+	var pickupDateStr = dateFormat(pickupDate, "dddd, mmmm dS, yyyy, h TT");
+	var returnDateStr = dateFormat(returnDate, "dddd, mmmm dS, yyyy, h TT");
 
 	if (status == 'new' || !('pickupLocation' in prevOfferRequest)) {
-		sendChatMessage('Ask Sixt to book a car in ' + pickupLocation + ' from ' + pickupDate + ' to ' + returnDate + '.', 'user');
-		sendChatMessage('Ok, I’m looking for offers in ' + pickupLocation + ' from ' + pickupDate + ' to ' + returnDate + '.', 'bot');
+		sendChatMessage('Ask Sixt to book a car in ' + pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
+		sendChatMessage('Ok, I’m looking for offers in ' + pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
 	}
 	else if (status == 'usual') {
 		sendChatMessage('Ask Sixt to book a car.', 'user');
-		sendChatMessage('Ok, I’m looking for your usual request: in ' + pickupLocation + ' from ' + pickupDate + ' to ' + returnDate + '.', 'bot');
+		sendChatMessage('Ok, I’m looking for your usual request: in ' + pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
 	}
 	else if (status == 'change') {
 		var message = 'Ok, I’m looking for offers ';
@@ -54,12 +56,12 @@ app.get('/getoffers', function(req, res) {
 			message += 'in ' + offerRequest.pickupLocation;
 		}
 		if (prevOfferRequest.pickupDate.toISOString() != offerRequest.pickupDate.toISOString()) {
-			sendChatMessage('No, from ' + offerRequest.pickupDate, 'user');
-			message += 'from ' + offerRequest.pickupDate;
+			sendChatMessage('No, from ' + pickupDateStr, 'user');
+			message += 'from ' + pickupDateStr;
 		}
 		if (prevOfferRequest.returnDate.toISOString() != offerRequest.returnDate.toISOString()) {
-			sendChatMessage('No, until ' + offerRequest.returnDate, 'user');
-			message += 'until ' + offerRequest.returnDate;
+			sendChatMessage('No, until ' + returnDateStr, 'user');
+			message += 'until ' + returnDateStr;
 		}
 		message += '.';
 		sendChatMessage(message, 'bot');
