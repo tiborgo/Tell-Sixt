@@ -96,33 +96,46 @@ function getOffers(offerRequest, callback) {
 	};
 
 	request(options, function(error, resp, bodyLocation) {
-		bodyLocation = JSON.parse(bodyLocation);
+		if (error) {
+			resp.status(500).send({ error: 'Cannot get next station ID' })
+		}
+		else {
+			bodyLocation = JSON.parse(bodyLocation);
 
-		var pickupLocationId = bodyLocation.downtownStations[0].identifier;
+			if (!bodyLocation.downtownStations 
+				|| !(bodyLocation.downtownStations instanceof Array)
+				|| bodyLocation.downtownStations.length == 0
+				|| !bodyLocation.downtownStations[0].identifier) {
+				resp.status(500).send({ error: 'Did not get a downtown station' })
+			}
+			else {
+				var pickupLocationId = bodyLocation.downtownStations[0].identifier;
 
-		// Request offer.
-		// TODO: flexi price.
-		// TODO: cheapest offer.
-		request('https://app.sixt.de/php/mobilews/v4/offerlist?pickupStation=' + pickupLocationId + '&returnStation=' + pickupLocationId + '&pickupDate=' + offerRequest.pickupDate.toISOString() + '&returnDate=' + offerRequest.returnDate.toISOString(), function(error, resp, bodyOffer) {
-			bodyOffer = JSON.parse(bodyOffer);
+				// Request offer.
+				// TODO: flexi price.
+				// TODO: cheapest offer.
+				request('https://app.sixt.de/php/mobilews/v4/offerlist?pickupStation=' + pickupLocationId + '&returnStation=' + pickupLocationId + '&pickupDate=' + offerRequest.pickupDate.toISOString() + '&returnDate=' + offerRequest.returnDate.toISOString(), function(error, resp, bodyOffer) {
+					bodyOffer = JSON.parse(bodyOffer);
 
-			var price = bodyOffer.offers[0].rates[0].price.totalPrice;
-			var carExample = bodyOffer.offers[0].group.modelExample;
+					var price = bodyOffer.offers[0].rates[0].price.totalPrice;
+					var carExample = bodyOffer.offers[0].group.modelExample;
 
-			var offer = {
-	    		pickupLocation: bodyLocation.downtownStations[0].name,
-	    		returnLocation: bodyLocation.downtownStations[0].name,
-	    		pickupDate: offerRequest.pickupDate,
-			    returnDate: offerRequest.returnDate,
-			    price: price,
-			    carExample: carExample
-			};
+					var offer = {
+			    		pickupLocation: bodyLocation.downtownStations[0].name,
+			    		returnLocation: bodyLocation.downtownStations[0].name,
+			    		pickupDate: offerRequest.pickupDate,
+					    returnDate: offerRequest.returnDate,
+					    price: price,
+					    carExample: carExample
+					};
 
-			// TODO: decide between 'a' and 'an'.
-			sendChatMessage('I can offer you a(n) ' + carExample + ' or similar for € ' + price + '. Should I book it now?', 'bot');
-            
-			callback([offer]);
-		});
+					// TODO: decide between 'a' and 'an'.
+					sendChatMessage('I can offer you a(n) ' + carExample + ' or similar for € ' + price + '. Should I book it now?', 'bot');
+		            
+					callback([offer]);
+				});
+			}
+		}
 	});
 
 	prevOfferRequest = offerRequest;
