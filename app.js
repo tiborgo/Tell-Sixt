@@ -55,29 +55,21 @@ app.get('/getoffers', function(req, res) {
 	var returnDateStr = dateFormat(offerRequest.returnDate, "dddd, mmmm dS, h:MM TT");
 
 	if (status == 'new') {
-		sendChatMessage('Ask Sixt to book a car in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
-		sendChatMessage('Ok, I’m looking for offers in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
+			sendChatMessage('Tell Sixt to book a car in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
 	}
 	else if (status == 'usual') {
-		sendChatMessage('Ask Sixt to book a car.', 'user');
-		sendChatMessage('Ok, I’m looking for your usual request: in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
+		sendChatMessage('Tell Sixt to book a car.', 'user');
 	}
 	else if (status == 'change') {
-		var message = 'Ok, I’m looking for offers ';
 		if (prevOfferRequest.pickupLocation != offerRequest.pickupLocation) {
 			sendChatMessage('No, in ' + offerRequest.pickupLocation, 'user');
-			message += 'in ' + offerRequest.pickupLocation;
 		}
 		if (prevOfferRequest.pickupDate.toISOString() != offerRequest.pickupDate.toISOString()) {
 			sendChatMessage('No, from ' + pickupDateStr, 'user');
-			message += 'from ' + pickupDateStr;
 		}
 		if (prevOfferRequest.returnDate.toISOString() != offerRequest.returnDate.toISOString()) {
 			sendChatMessage('No, until ' + returnDateStr, 'user');
-			message += 'until ' + returnDateStr;
 		}
-		message += '.';
-		sendChatMessage(message, 'bot');
 	}
 
 	getOffers(offerRequest, function(offers) {
@@ -115,6 +107,28 @@ function getOffers(offerRequest, callback) {
 			bodyLocation.airportStations :
 			bodyLocation.downtownStations;
 		var pickupLocationId = stations[0].identifier;
+		var pickupLocationName = stations[0].name;
+
+		if (status == 'new') {
+			sendChatMessage('Ok, I’m looking for offers in ' + pickupLocationName + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
+		}
+		else if (status == 'usual') {
+			sendChatMessage('Ok, I’m looking for your usual request: in ' + pickupLocationName + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
+		}
+		else if (status == 'change') {
+			var message = 'Ok, I’m looking for offers ';
+			if (prevOfferRequest.pickupLocation != offerRequest.pickupLocation) {
+				message += 'in ' + pickupLocationName;
+			}
+			if (prevOfferRequest.pickupDate.toISOString() != offerRequest.pickupDate.toISOString()) {
+				message += 'from ' + pickupDateStr;
+			}
+			if (prevOfferRequest.returnDate.toISOString() != offerRequest.returnDate.toISOString()) {
+				message += 'until ' + returnDateStr;
+			}
+			message += '.';
+			sendChatMessage(message, 'bot');
+		}
 
 		// Request offer.
 		// TODO: flexi price.
@@ -126,8 +140,8 @@ function getOffers(offerRequest, callback) {
 			var carExample = bodyOffer.offers[0].group.modelExample;
 
 			var offer = {
-	    		pickupLocation: stations[0].name,
-	    		returnLocation: stations[0].name,
+	    		pickupLocation: pickupLocationName,
+	    		returnLocation: pickupLocationName,
 	    		pickupDate: offerRequest.pickupDate,
 			    returnDate: offerRequest.returnDate,
 			    price: price,
