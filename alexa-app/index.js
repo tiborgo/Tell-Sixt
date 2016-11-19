@@ -51,7 +51,7 @@ app.intent('NewBooking',
                 response.session("case", 1);
                 response.session("params", buildParams(offer));
 
-                response.say("You want to book a car in " + offer.pickupLocation +
+                response.say("Ok, I'm looking for offers in " + offer.pickupLocation +
                     " from " + formatDate(offer.pickupDate) +
                     " to " + formatDate(offer.returnDate) + ".")
                     .say("I can offer you a " + offer.carExample + " or similar for " + offer.price + " Euro.")
