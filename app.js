@@ -13,12 +13,16 @@ app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
-app.get('/bookcar', function(req, res) {
+app.get('/getoffers', function(req, res) {
+
+	var pickupLocation = req.query.pickupLocation;
+	var pickupDate = new Date(req.query.pickupDate);
+	var returnDate = new Date(req.query.returnDate);
 
 	getOffers({
-			pickupLocation: 'Muenchen',
-			pickupDate: new Date(2016, 11, 20, 8),
-			returnDate: new Date(2016, 11, 23, 8)
+			pickupLocation: pickupLocation,
+			pickupDate: pickupDate,
+			returnDate: returnDate
 		}, function(offer) {
      	res.setHeader('Content-Type', 'application/json');
       	res.send(JSON.stringify(offer, null, 3));
@@ -29,7 +33,14 @@ function getOffers(offerRequest, callback) {
 
 	// Request location.
 	// TODO: take closest location.
-	request('https://app.sixt.de/php/mobilews/v4/stationsuggestion?address=' + offerRequest.pickupLocation, function(error, resp, bodyLocation) {
+	var options = {
+	 	url: 'https://app.sixt.de/php/mobilews/v4/stationsuggestion?address=' + offerRequest.pickupLocation,
+	  	headers: {
+	    	'Accept-Language': 'en_US'
+	  	}
+	};
+
+	request(options, function(error, resp, bodyLocation) {
 		bodyLocation = JSON.parse(bodyLocation);
 
 		var pickupLocationId = bodyLocation.downtownStations[0].identifier;
@@ -55,7 +66,7 @@ function getOffers(offerRequest, callback) {
 }
 
 app.listen(app.get('port'), function() {
-  console.log('Node app is running on port', app.get('port'));
+ 	console.log('Node app is running on port', app.get('port'));
 });
 
 module.exports = app;
