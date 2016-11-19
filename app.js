@@ -68,6 +68,10 @@ function getOffers(offerRequest, callback) {
 			    carExample: bodyOffer.offers[0].group.modelExample
 			};
 
+            for(var i = 0; i < conns.length; i++){
+                conns[i].emit('chat', {text: "YEHAAAA"});
+            }
+            
 			callback([offer]);
 		});
 	});
