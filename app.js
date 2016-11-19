@@ -408,19 +408,21 @@ function receivedAccountLink(event) {
     "and auth code %s ", senderID, status, authCode);
 }
 
-
 function sendIntroMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      text: "Hey, customer!",
-      metadata: "DEVELOPER_DEFINED_METADATA"
-    }
-  };
 
-  callSendAPI(messageData);
+  bookCar(function(offer) {
+    var messageData = {
+      recipient: {
+        id: recipientId
+      },
+      message: {
+        text: offer,
+        metadata: "DEVELOPER_DEFINED_METADATA"
+      }
+    };
+
+    callSendAPI(messageData);
+  });
 }
 
 
@@ -855,6 +857,18 @@ function callSendAPI(messageData) {
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
+
+function bookCar(pickup_location, pickup_date, return_date, callback) {
+  var offer = {
+    pickup_location: "Munich Airport",
+    return_location: "Munich Airport",
+    pickup_date: new Date(),
+    return_date: new Date(),
+    price: 59.99,
+    car_exmaple: "3er BMW"
+  };
+  callback(offer);
+}
 
 module.exports = app;
 
