@@ -51,8 +51,8 @@ app.get('/getoffers', function(req, res) {
 
 	console.log(offerRequest);
 
-	var pickupDateStr = dateFormat(offerRequest.pickupDate, "dddd, mmmm dS, h:MM TT");
-	var returnDateStr = dateFormat(offerRequest.returnDate, "dddd, mmmm dS, h:MM TT");
+	var pickupDateStr = formatDate(offerRequest.pickupDate);
+	var returnDateStr = formatDate(offerRequest.returnDate);
 
 	if (status == 'new') {
 			sendChatMessage('Tell Sixt to book a car in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
@@ -122,6 +122,8 @@ function getOffers(offerRequest, status, callback) {
 			bodyLocation.downtownStations;
 		var pickupLocationId = stations[0].identifier;
 		var pickupLocationName = stations[0].name;
+		var pickupDateStr = formatDate(offerRequest.pickupDate);
+		var returnDateStr = formatDate(offerRequest.returnDate);
 
 		if (status == 'new') {
 			sendChatMessage('Ok, I’m looking for offers in ' + pickupLocationName + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
@@ -200,6 +202,10 @@ function sendChatMessage(message, sender) {
         	time: new Date()
        	});
 	}
+}
+
+function formatDate(date) {
+	return dateFormat(date, "dddd, mmmm dS, h:MM TT");
 }
 
 module.exports = app;
