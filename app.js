@@ -72,7 +72,7 @@ app.get('/getoffers', function(req, res) {
 		}
 	}
 
-	getOffers(offerRequest, function(error, offers) {
+	getOffers(offerRequest, status, function(error, offers) {
 		if (error) {
 			res.status(500).send({ error: 'Error getting offers' });
 		}
@@ -92,7 +92,7 @@ app.get('/', function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
-function getOffers(offerRequest, callback) {
+function getOffers(offerRequest, status, callback) {
 
 	// Request location.
 	// TODO: take closest location.
