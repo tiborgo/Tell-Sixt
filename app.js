@@ -5,12 +5,20 @@ const
   config = require('config'),
   crypto = require('crypto'),
   express = require('express'),
-  https = require('https'),  
+  http = require('http'),  
   request = require('request');
 
 var app = express();
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
+
+var conns = [];
+
 app.set('port', process.env.PORT || 5000);
-app.set('view engine', 'ejs');
+server.listen(app.get('port'), function() {
+ 	console.log('Node app is running on port', app.get('port'));
+});
+
 app.use(express.static('public'));
 
 app.get('/getoffers', function(req, res) {
@@ -60,13 +68,22 @@ function getOffers(offerRequest, callback) {
 			    carExample: bodyOffer.offers[0].group.modelExample
 			};
 
+            for(var i = 0; i < conns.length; i++){
+                conns[i].emit('chat', {text: "YEHAAAA"});
+            }
+            
 			callback([offer]);
 		});
 	});
 }
 
-app.listen(app.get('port'), function() {
- 	console.log('Node app is running on port', app.get('port'));
+// Websocket.
+io.on('connection', function(socket) {
+	conns.push(socket);
+	socket.emit('chat', {
+		text: "You are connected!"
+	});
+	console.log('a user connected');
 });
 
 module.exports = app;
