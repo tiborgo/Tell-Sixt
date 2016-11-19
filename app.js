@@ -255,7 +255,11 @@ function receivedMessage(event) {
     // keywords and send back the corresponding example. Otherwise, just echo
     // the text we received.
     switch (messageText) {
-      case 'image':
+      case 'Hey, Sixt!'
+        sendIntroMessage(senderID);
+        break;
+
+      /*case 'image':
         sendImageMessage(senderID);
         break;
 
@@ -305,7 +309,7 @@ function receivedMessage(event) {
 
       case 'account linking':
         sendAccountLinking(senderID);
-        break;
+        break;*/
 
       default:
         sendTextMessage(senderID, messageText);
@@ -403,6 +407,24 @@ function receivedAccountLink(event) {
   console.log("Received account link event with for user %d with status %s " +
     "and auth code %s ", senderID, status, authCode);
 }
+
+
+function sendIntroMessage(recipientId) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      text: "Hey, customer!,
+      metadata: "DEVELOPER_DEFINED_METADATA"
+    }
+  };
+
+  callSendAPI(messageData);
+}
+
+
+
 
 /*
  * Send an image using the Send API.
