@@ -71,6 +71,13 @@ app.get('/getoffers', function(req, res) {
   	});
 });
 
+app.get('/confirm', function(req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	res.send(JSON.stringify({}, null, 3));
+	sendChatMessage('Yes!', 'user');
+	sendChatMessage('I confirm. the car is booked.', 'bot');
+});
+
 app.get('/', function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
