@@ -1,6 +1,6 @@
 {
-    "appSecret": "66c76da20e4aead094e77293a829b2fb",
-    "pageAccessToken": "EAANWfYr8LRQBAApztqC4aY9bTcgseoHhqstgBgDmc6SLQzapLNGsjwSFOSz9ZBZCHsgSZAtase6DHHZCbQP6qA3ZAsLjolZBFZAJaFcYWkOVP97SfvZBkLztImSQcTEb4XiNeTy6oqIMVAFfQ8UzGcvmb9w40F8wdD8YoJJWchtMUwZDZD",
+    "appSecret": "eeb3fe1c24ec128431b34430da4c7098",
+    "pageAccessToken": "EAAZAf3ZCgZB5mABAINYWPeREUs027aJeMbyZB2lGpFCBCz0OLtpXXowbZALjndVczrvZAVsWYRiOffxuZCak4Ap4UGO0SEJGD3ZCFlo16V2vMzCZAV4JhrT72Ape9wDOYId10m2nEHpfKGNXZAVQe3vkzbIXIfpt0DZBehJEm5tq0nQpAZDZD",
     "validationToken": "X0XuYjxfBLPYhMhWzZWo",
-    "serverURL": "https://facebook-messenger-test-bot.herokuapp.com"
+    "serverURL": "https://sixt-bot.herokuapp.com"
 }
