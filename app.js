@@ -73,6 +73,13 @@ app.get('/webhook', function(req, res) {
 });
 
 
+app.get('/bookcar', function(req, res) {
+    bookCar(function(offer) {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify(offer, null, 3));
+  });
+});
+
 /*
  * All callbacks for Messenger are POST-ed. They will be sent to the same
  * webhook. Be sure to subscribe your app to your page to receive callbacks
