@@ -111,7 +111,10 @@ function getOffers(offerRequest, callback) {
 	request(options, function(error, resp, bodyLocation) {
 		bodyLocation = JSON.parse(bodyLocation);
 
-		var pickupLocationId = bodyLocation.downtownStations[0].identifier;
+		var stations = (bodyLocation.airportStations && bodyLocation.airportStations.length > 0) ?
+			bodyLocation.airportStations :
+			bodyLocation.downtownStations;
+		var pickupLocationId = stations[0].identifier;
 
 		// Request offer.
 		// TODO: flexi price.
@@ -123,8 +126,8 @@ function getOffers(offerRequest, callback) {
 			var carExample = bodyOffer.offers[0].group.modelExample;
 
 			var offer = {
-	    		pickupLocation: bodyLocation.downtownStations[0].name,
-	    		returnLocation: bodyLocation.downtownStations[0].name,
+	    		pickupLocation: stations[0].name,
+	    		returnLocation: stations[0].name,
 	    		pickupDate: offerRequest.pickupDate,
 			    returnDate: offerRequest.returnDate,
 			    price: price,
