@@ -21,6 +21,9 @@ var prevOfferRequest = {
 	pickupDate: new Date(),
 	returnDate: new Date()
 };
+
+var lastOfferId = 'abc';
+
 prevOfferRequest.pickupDate.setHours(12);
 prevOfferRequest.returnDate.setHours(12);
 prevOfferRequest.pickupDate.setDate(prevOfferRequest.pickupDate.getDate() + 7);
@@ -97,6 +100,89 @@ app.get('/', function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
+app.get('/getInfo', function(req, res) {
+    var offerRequest = {};
+    var status = req.query.type;
+    
+	getInfo(offerRequest, status,  function(error, offers) {
+		if (error) {
+			res.status(500).send({ error: 'Error getting offers' });
+		}
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify(offers, null, 3));
+    });
+});
+
+function getInfo(offerRequest, status,callback) {
+    
+    request('https://app.sixt.de/php/mobilews/v4/offer/' + lastOfferId, 
+            function(error, resp, bodyInfo) {
+        
+        bodyInfo = JSON.parse(bodyInfo);
+        
+        var offer = {
+	    		pickupLocation: 'pickupLocationName',
+	    		returnLocation: 'pickupLocationName',
+	    		pickupDate: new Date(),
+			    returnDate: new Date(),
+			    price: 0,
+			    carExample: "BMW",
+		};
+        
+        // Error handling - sassy edition
+        if(bodyInfo.status == 400){
+            offer.text = "Why don't you just look it up yourself!";
+            console.log("Why don't you just look it up yourself!");
+            callback(null, [offer]);
+        } else {
+            var text = "";
+            
+            switch (status){
+                    
+                case "seats":
+                    text =  "Your car has " + bodyInfo.group.seats + " seats."
+                    sendChatMessage('How many seats does it have?', 'user');
+                    sendChatMessage(text, 'bot');
+                    break;
+                    
+                case "gps":
+                    sendChatMessage("Does it have a GPS", 'user');
+                    if(bodyInfo.group.navigationSystem){   
+                        text= "Yes, your car has a GPS System."
+                        sendChatMessage(text, 'bot');
+                    } else {
+                         text= "Unfortunately, your car does not have a GPS. Don't you have Google Maps?"
+                         sendChatMessage("How to use Google maps: https://support.google.com/maps/?hl=de#topic=3092425", 'bot');
+                    }
+                    break; 
+                    
+                case "price":
+                    text = "The total price for your rental is " +
+                        Math.round(bodyInfo.rates[0].price.totalPrice) + " Euros.";
+                    sendChatMessage("How much does it cost again?", 'user');
+                    sendChatMessage(text, 'bot');
+                    break;
+                case "expensive":
+                    sendChatMessage("Oh, that is too expensive.");
+                    text = "If you don't get paid enough, you could start working for Sixt. We pay well and you get a discount on all bookings. I have sent you a job offer!";
+                    sendChatMessage('Here is your job offer: https://www2.sixt.jobs/de/de/jobs/3628', 'bot');
+                    break;
+                    
+                case "nice":
+                    sendChatMessage("Is it a nice car?", 'user');
+                    text = "What a stupid question! All our cars are awesome! I have sent you an image.";
+                    sendChatMessage("What a stupid question! All our cars are awesome! " + "<img src='"+ bodyInfo.group.images[0].path + "'/>", 'bot');
+                    break;
+                    
+                    
+            } 
+            offer.text = text;
+            console.log(text);
+            callback(null, [offer]);
+        }
+    });
+};
+
 function getOffers(offerRequest, status, callback) {
 
 	// Request location.
@@ -168,8 +254,9 @@ function getOffers(offerRequest, status, callback) {
 				callback({ error: "Could not get price or car example"}, null);
 				return;
 			}
-			var price = bodyOffer.offers[0].rates[0].price.totalPrice;
+			var price = Math.round(bodyOffer.offers[0].rates[0].price.totalPrice);
 			var carExample = bodyOffer.offers[0].group.modelExample;
+            lastOfferId = bodyOffer.offers[0].rates[0].offerId;
 
 			var offer = {
 	    		pickupLocation: pickupLocationName,
@@ -177,7 +264,7 @@ function getOffers(offerRequest, status, callback) {
 	    		pickupDate: offerRequest.pickupDate,
 			    returnDate: offerRequest.returnDate,
 			    price: price,
-			    carExample: carExample
+			    carExample: carExample,
 			};
 
 			// TODO: decide between 'a' and 'an'.

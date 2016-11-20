@@ -53,7 +53,7 @@ app.intent('NewBooking',
             "returnDate": "AMAZON.DATE",
             "returnTime": "AMAZON.TIME"
         },
-        "utterances": ["book a car in {-|city} from {-|pickupDate} {-|pickupTime} to {-|returnDate} {-|returnTime}"]
+		"utterances": ["book {me|} a car in {-|city} from {-|pickupDate} {-|pickupTime} to {-|returnDate} {-|returnTime}"]
     },
 
     function(request, response) {
@@ -91,10 +91,8 @@ app.intent('NewBooking',
     }
 );
 
-app.intent('AMAZON.YesIntent',
-
-    function(request, response) {
-        console.log("YesIntent");
+var confirmHandler = function (request, response) {
+    console.log("YesIntent");
 
         get("https://sixt-bot.herokuapp.com/confirm" + request.session("params"),
             function(error, resp, body) {
@@ -102,12 +100,19 @@ app.intent('AMAZON.YesIntent',
             });
 
         return false;
-    }
+}
+
+app.intent('AMAZON.YesIntent', confirmHandler);
+
+app.intent('Confirm',
+    {
+        "utterances": ["{ok|yes|go|} {book|do} it {then|}"]
+    }, confirmHandler
 );
 
 app.intent("UsualBooking",
     {
-        "utterances": ["book a car"]
+        "utterances": ["book {me|} a car {as usual|}"]
     },
 
     function(request, response) {
@@ -232,6 +237,66 @@ app.intent("NoReturnDate",
         return false;
     }
 );
+
+function infoHandler(type) {
+    return function(request, response) {
+        console.log("DetailInfoIntent");
+
+        get("https://sixt-bot.herokuapp.com/getInfo?type=" + type,
+            function(error, resp, body) {
+                var offers = JSON.parse(body);
+                var offer = offers[0];
+
+                console.log(offers);
+
+                response.say(offer.text)
+                    .shouldEndSession(false)
+                    .send();
+            });
+
+        return false;
+    }
+}
+
+app.intent("SeatsInfo",
+    {
+        "utterances": ["how many seats does {it|the car} have"]
+    },
+
+    infoHandler("seats")
+)
+
+app.intent("GPSInfo",
+    {
+        "utterances": ["does {it|the car} have {gps|a navigation system}"]
+    },
+
+    infoHandler("gps")
+)
+
+app.intent("PriceInfo",
+    {
+        "utterances": ["how much {it|the car} does it cost {|again}"]
+    },
+
+    infoHandler("price")
+)
+
+app.intent("AwesomeInfo",
+    {
+        "utterances": ["is it {a|} nice {car|one}"]
+    },
+
+    infoHandler("nice")
+)
+
+app.intent("TooExpensive",
+    {
+        "utterances": ["{no|oh|} {that is|that's} too {much|expensive}"]
+    },
+
+    infoHandler("expensive")
+)
 
 console.log(app.schema());
 console.log(app.utterances());
