@@ -141,28 +141,37 @@ function getInfo(offerRequest, status,callback) {
                     
                 case "seats":
                     text =  "Your car has " + bodyInfo.group.seats + " seats."
+                    sendChatMessage('How many seats does it have?', 'user');
+                    sendChatMessage(text, 'bot');
                     break;
                     
                 case "gps":
-                    
+                    sendChatMessage("Does it have a GPS", 'user');
                     if(bodyInfo.group.navigationSystem){   
                         text= "Yes, your car has a GPS System."
+                        sendChatMessage(text, 'bot');
                     } else {
                          text= "Unfortunately, your car does not have a GPS. Don't you have Google Maps?"
+                         sendChatMessage("How to use Google maps: https://support.google.com/maps/?hl=de#topic=3092425", 'bot');
                     }
                     break; 
                     
                 case "price":
                     text = "The total price for your rental is " +
                         Math.round(bodyInfo.rates[0].price.totalPrice) + " Euros.";
+                    sendChatMessage("How much does it cost again?", 'user');
+                    sendChatMessage(text, 'bot');
                     break;
                 case "expensive":
+                    sendChatMessage("Oh, that is too expensive.");
                     text = "If you don't get paid enough, you could start working for Sixt. We pay well and you get a discount on all bookings. I have sent you a job offer!";
                     sendChatMessage('Here is your job offer: https://www2.sixt.jobs/de/de/jobs/3628', 'bot');
                     break;
                     
                 case "nice":
-                    text = "What a stupid question! All our cars are awesome!"
+                    sendChatMessage("Is it a nice car?", 'user');
+                    text = "What a stupid question! All our cars are awesome! I have sent you an image.";
+                    sendChatMessage("What a stupid question! All our cars are awesome! " + "<img src='"+ bodyInfo.group.images[0].path + "'/>", 'bot');
                     break;
                     
                     
