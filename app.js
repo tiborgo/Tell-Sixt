@@ -51,8 +51,8 @@ app.get('/getoffers', function(req, res) {
 
 	console.log(offerRequest);
 
-	var pickupDateStr = dateFormat(offerRequest.pickupDate, "dddd, mmmm dS, h:MM TT");
-	var returnDateStr = dateFormat(offerRequest.returnDate, "dddd, mmmm dS, h:MM TT");
+	var pickupDateStr = formatDate(offerRequest.pickupDate);
+	var returnDateStr = formatDate(offerRequest.returnDate);
 
 	if (status == 'new') {
 			sendChatMessage('Tell Sixt to book a car in ' + offerRequest.pickupLocation + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'user');
@@ -72,7 +72,10 @@ app.get('/getoffers', function(req, res) {
 		}
 	}
 
-	getOffers(offerRequest, function(offers) {
+	getOffers(offerRequest, status, function(error, offers) {
+		if (error) {
+			res.status(500).send({ error: 'Error getting offers' });
+		}
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify(offers, null, 3));
 	});
@@ -89,7 +92,7 @@ app.get('/', function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
 
-function getOffers(offerRequest, callback) {
+function getOffers(offerRequest, status, callback) {
 
 	// Request location.
 	// TODO: take closest location.
@@ -101,13 +104,26 @@ function getOffers(offerRequest, callback) {
 	};
 
 	request(options, function(error, resp, bodyLocation) {
+		if (error) {
+			callback(error, null);
+			return;
+		}
+
 		bodyLocation = JSON.parse(bodyLocation);
+
+		if (!bodyLocation.downtownStations
+			|| bodyLocation.downtownStations.length == 0) {
+			callback({ error: 'Did not get a downtown station' }, null);
+			return;
+		}
 
 		var stations = (bodyLocation.airportStations && bodyLocation.airportStations.length > 0) ?
 			bodyLocation.airportStations :
 			bodyLocation.downtownStations;
 		var pickupLocationId = stations[0].identifier;
 		var pickupLocationName = stations[0].name;
+		var pickupDateStr = formatDate(offerRequest.pickupDate);
+		var returnDateStr = formatDate(offerRequest.returnDate);
 
 		if (status == 'new') {
 			sendChatMessage('Ok, I’m looking for offers in ' + pickupLocationName + ' from ' + pickupDateStr + ' to ' + returnDateStr + '.', 'bot');
@@ -134,8 +150,19 @@ function getOffers(offerRequest, callback) {
 		// TODO: flexi price.
 		// TODO: cheapest offer.
 		request('https://app.sixt.de/php/mobilews/v4/offerlist?pickupStation=' + pickupLocationId + '&returnStation=' + pickupLocationId + '&pickupDate=' + offerRequest.pickupDate.toISOString() + '&returnDate=' + offerRequest.returnDate.toISOString(), function(error, resp, bodyOffer) {
-			bodyOffer = JSON.parse(bodyOffer);
+			if (error) {
+				callback(error, null);
+				return;
+			}
+				bodyOffer = JSON.parse(bodyOffer);
 
+			if (!bodyOffer.offers || bodyOffer.offers.size == 0
+				|| !bodyOffer.offers[0].rates || bodyOffer.offers[0].rates.size == 0
+				|| !bodyOffer.offers[0].rates[0].price || !bodyOffer.offers[0].rates[0].price.totalPrice
+				|| !bodyOffer.offers[0].group || !bodyOffer.offers[0].group.modelExample) {
+				callback({ error: "Could not get price or car example"}, null);
+				return;
+			}
 			var price = bodyOffer.offers[0].rates[0].price.totalPrice;
 			var carExample = bodyOffer.offers[0].group.modelExample;
 
@@ -151,7 +178,7 @@ function getOffers(offerRequest, callback) {
 			// TODO: decide between 'a' and 'an'.
 			sendChatMessage('I can offer you a(n) ' + carExample + ' or similar for € ' + price + '. Should I book it now?', 'bot');
             
-			callback([offer]);
+			callback(null, [offer]);
 		});
 	});
 
@@ -175,6 +202,10 @@ function sendChatMessage(message, sender) {
         	time: new Date()
        	});
 	}
+}
+
+function formatDate(date) {
+	return dateFormat(date, "dddd, mmmm dS, h:MM TT");
 }
 
 module.exports = app;
