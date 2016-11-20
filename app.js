@@ -88,6 +88,11 @@ app.get('/confirm', function(req, res) {
 	sendChatMessage('I confirm. the car is booked :)', 'bot');
 });
 
+app.get('/getprofile', function(req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	res.send(JSON.stringify(prevOfferRequest, null, 3));
+});
+
 app.get('/', function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
