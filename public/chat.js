@@ -13,7 +13,7 @@ socket.on('chat', function (msg) {
         var html = '<li class = "clearfix" >' +
             '   <div class = "message-data align-right" >' +
             '   <span class = "message-data-time" > ' + print_date + ' </span> &nbsp; &nbsp; ' +
-            '   <span class = "message-data-name" > Max Mustermann </span> <i class="fa fa-circle me"></i >' +
+            '   <span class = "message-data-name" > Timo Loewe </span> <i class="fa fa-circle me"></i >' +
             '</div>' +
             '<div class="message other-message float-right">' + msg.text + '</div></li>';
 
