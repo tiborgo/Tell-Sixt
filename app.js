@@ -21,6 +21,9 @@ var prevOfferRequest = {
 	pickupDate: new Date(),
 	returnDate: new Date()
 };
+
+var lastOfferId = 'abc';
+
 prevOfferRequest.pickupDate.setHours(12);
 prevOfferRequest.returnDate.setHours(12);
 prevOfferRequest.pickupDate.setDate(prevOfferRequest.pickupDate.getDate() + 7);
@@ -91,6 +94,50 @@ app.get('/confirm', function(req, res) {
 app.get('/', function(req, res) {
 	res.sendFile(__dirname + "/index.html");
 });
+
+app.get('/getInfo', function(req, res) {
+    var offerRequest = {};
+    
+	getInfo(offerRequest, function(error, offers) {
+		if (error) {
+			res.status(500).send({ error: 'Error getting offers' });
+		}
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify(offers, null, 3));
+    });
+});
+
+function getInfo(offerRequest, callback) {
+    
+    request('https://app.sixt.de/php/mobilews/v4/offer/' + lastOfferId, 
+            function(error, resp, bodyInfo) {
+        
+        bodyInfo = JSON.parse(bodyInfo);
+        console.log("body info",bodyInfo);
+        console.log("prev offer",lastOfferId);
+        
+        var offer = {
+	    		pickupLocation: 'pickupLocationName',
+	    		returnLocation: 'pickupLocationName',
+	    		pickupDate: new Date(),
+			    returnDate: new Date(),
+			    price: 0,
+			    carExample: "BMW",
+		};
+        
+        // Error handling - sassy edition
+        if(bodyInfo.status == 400){
+            offer.text = "Why don't you just look it up yourself!";
+            console.log("Why don't you just look it up yourself!");
+            callback(null, [offer]);
+        } else {
+            offer.text = "Your cars has "+  bodyInfo.group.seats + " seats";
+            console.log("Your cars has "+  bodyInfo.group.seats + " seats");
+
+            callback(null, [offer]);
+        }
+    });
+};
 
 function getOffers(offerRequest, status, callback) {
 
@@ -163,8 +210,9 @@ function getOffers(offerRequest, status, callback) {
 				callback({ error: "Could not get price or car example"}, null);
 				return;
 			}
-			var price = bodyOffer.offers[0].rates[0].price.totalPrice;
+			var price = Math.round(bodyOffer.offers[0].rates[0].price.totalPrice);
 			var carExample = bodyOffer.offers[0].group.modelExample;
+            lastOfferId = bodyOffer.offers[0].rates[0].offerId;
 
 			var offer = {
 	    		pickupLocation: pickupLocationName,
@@ -172,7 +220,7 @@ function getOffers(offerRequest, status, callback) {
 	    		pickupDate: offerRequest.pickupDate,
 			    returnDate: offerRequest.returnDate,
 			    price: price,
-			    carExample: carExample
+			    carExample: carExample,
 			};
 
 			// TODO: decide between 'a' and 'an'.
