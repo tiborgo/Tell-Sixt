@@ -10,4 +10,6 @@ It uses the [Amazon Echo infrastructure](https://developer.amazon.com/edw/home.h
 2. Setup a Heroku NodeJS app.
 3. Upload the root folder to Heroku.
 4. Zip the contents of `alexa-app/` and upload it to your Alexa Skill template.
-5. run `node alexa-app/index.js` and update the Intent Schema and the Sample Utterance according to the output.
+5. Run `node alexa-app/index.js` and update the Intent Schema and the Sample Utterance according to the output.
+
+You can test this project with [Echosim.io](https://echosim.io/)
