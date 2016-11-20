@@ -119,8 +119,6 @@ function getInfo(offerRequest, status,callback) {
             function(error, resp, bodyInfo) {
         
         bodyInfo = JSON.parse(bodyInfo);
-        console.log("body info",bodyInfo);
-        console.log("prev offer",lastOfferId);
         
         var offer = {
 	    		pickupLocation: 'pickupLocationName',
