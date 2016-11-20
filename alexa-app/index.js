@@ -39,8 +39,7 @@ function buildGetOffers(offerRequest, status) {
 }
 
 function sayOffer(response, offerRequest, offer) {
-    response.say("Ok, I'm looking for offers in " + offerRequest.pickupLocation + ".")
-        .say("I can offer you a " + offer.carExample + " or similar for " + offer.price + " Euro.")
+    response.say("I can offer you a " + offer.carExample + " or similar for " + offer.price + " Euro.")
         .say("Should I book it now?");
     return response;
 }
@@ -53,8 +52,8 @@ app.intent('NewBooking',
             "pickupTime": "AMAZON.TIME",
             "returnDate": "AMAZON.DATE",
             "returnTime": "AMAZON.TIME"
-        }
-        , "utterances": ["book a car in {-|city} from {-|pickupDate} {-|pickupTime} to {-|returnDate} {-|returnTime}"]
+        },
+        "utterances": ["book a car in {-|city} from {-|pickupDate} {-|pickupTime} to {-|returnDate} {-|returnTime}"]
     },
 
     function(request, response) {
@@ -158,6 +157,39 @@ app.intent("NoLocation",
         get(buildGetOffers(offerRequest, 'change'), function(error, resp, body) {
             var offer = JSON.parse(body)[0];
 
+            response.say("Ok, I'm looking for offers in " + offerRequest.pickupLocation + ".");
+            sayOffer(response, offerRequest, offer)
+                .shouldEndSession(false)
+                .send();
+        });
+
+        return false;
+    }
+);
+
+app.intent("NoPickupDate",
+    {
+        "slots": {
+            "pickupDate": "AMAZON.DATE",
+            "pickupTime": "AMAZON.TIME",
+        },
+        "utterances": ["no from {-|pickupDate} {-|pickupTime}"]
+    },
+
+    function(request, response) {
+        console.log("NoPickupDateIntent");
+
+        var pickupDate = request.slot('pickupDate');
+        var pickupTime = request.slot('pickupTime');
+
+        offerRequest = loadSession(request);
+        offerRequest.pickupDate = pickupDate + "T" + pickupTime;
+        saveSession(response, offerRequest);
+
+        get(buildGetOffers(offerRequest, 'change'), function(error, resp, body) {
+            var offer = JSON.parse(body)[0];
+
+            response.say("Ok, I'm looking for offers from " + formatDate(offerRequest.pickupDate) + ".");
             sayOffer(response, offerRequest, offer)
                 .shouldEndSession(false)
                 .send();
