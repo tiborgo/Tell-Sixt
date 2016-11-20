@@ -199,6 +199,40 @@ app.intent("NoPickupDate",
     }
 );
 
+app.intent("NoReturnDate",
+    {
+        "slots": {
+            "returnDate": "AMAZON.DATE",
+            "returnTime": "AMAZON.TIME",
+        },
+        "utterances": ["no until {-|returnDate} {-|returnTime}"]
+    },
+
+    function(request, response) {
+        console.log("NoReturnDateIntent");
+
+        var returnDate = request.slot('returnDate');
+        var returnTime = request.slot('returnTime');
+
+        offerRequest = loadSession(request);
+        offerRequest.returnDate = returnDate + "T" + returnTime;
+        saveSession(response, offerRequest);
+
+        get(buildGetOffers(offerRequest, 'change'), function(error, resp, body) {
+            var offer = JSON.parse(body)[0];
+
+            console.log(offer);
+
+            response.say("Ok, I'm looking for offers until " + formatDate(offerRequest.returnDate) + ".");
+            sayOffer(response, offerRequest, offer)
+                .shouldEndSession(false)
+                .send();
+        });
+
+        return false;
+    }
+);
+
 console.log(app.schema());
 console.log(app.utterances());
 
