@@ -31,6 +31,20 @@ function loadSession(request) {
     return offerRequest;
 }
 
+function buildGetOffers(offerRequest, status) {
+    return "https://sixt-bot.herokuapp.com/getoffers?pickupLocation=" + offerRequest.pickupLocation +
+        "&pickupDate=" + offerRequest.pickupDate +
+        "&returnDate=" + offerRequest.returnDate +
+        "&status=" + status;
+}
+
+function sayOffer(response, offerRequest, offer) {
+    response.say("Ok, I'm looking for offers in " + offerRequest.pickupLocation + ".")
+        .say("I can offer you a " + offer.carExample + " or similar for " + offer.price + " Euro.")
+        .say("Should I book it now?");
+    return response;
+}
+
 app.intent('NewBooking',
     {
         "slots": {
@@ -141,18 +155,10 @@ app.intent("NoLocation",
         offerRequest.pickupLocation = request.slot('city');
         saveSession(response, offerRequest);
 
-        console.log(offerRequest);
-
-        get("https://sixt-bot.herokuapp.com/getoffers?pickupLocation=" + offerRequest.pickupLocation +
-                "&pickupDate=" + offerRequest.pickupDate +
-                "&returnDate=" + offerRequest.returnDate +
-                "&status=change", function(error, resp, body) {
-
+        get(buildGetOffers(offerRequest, 'change'), function(error, resp, body) {
             var offer = JSON.parse(body)[0];
 
-            response.say("Ok, I'm looking for offers in " + offerRequest.pickupLocation)
-                .say("I can offer you a " + offer.carExample + " or similar for " + offer.price + " Euro.")
-                .say("Should I book it now?")
+            sayOffer(response, offerRequest, offer)
                 .shouldEndSession(false)
                 .send();
         });
