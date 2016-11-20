@@ -17,13 +17,13 @@ function buildParams(offer) {
         "&returnDate=" + offer.returnDate;
 }
 
-function saveSession(session, offerRequest) {
-    session("pickupLocation", offerRequest.pickupLocation);
-    session("pickupDate", offerRequest.pickupDate);
-    session("returnDate", offerRequest.returnDate);
+function saveSession(response, offerRequest) {
+    response.session("pickupLocation", offerRequest.pickupLocation);
+    response.session("pickupDate", offerRequest.pickupDate);
+    response.session("returnDate", offerRequest.returnDate);
 }
 
-function loadSession(session) {
+function loadSession(request) {
     var offerRequest = {};
     offerRequest.pickupLocation = request.session("pickupLocation");
     offerRequest.pickupDate = request.session("pickupDate");
@@ -102,11 +102,8 @@ app.intent("UsualBooking",
 
         get("https://sixt-bot.herokuapp.com/getprofile", function(error, resp, bodyProfile) {        
             var offerRequest = JSON.parse(bodyProfile);
-            response.session("pickupLocation", offerRequest.pickupLocation);
-            response.session("pickupDate", offerRequest.pickupDate.toISOString());
-            response.session("returnDate", offerRequest.returnDate.toISOString());
-
             console.log(offerRequest);
+            saveSession(response, offerRequest);
 
             get("https://sixt-bot.herokuapp.com/getoffers?status=usual", function(error, resp, body) {
 
@@ -140,13 +137,13 @@ app.intent("NoLocation",
     function(request, response) {
         console.log("NoLocationIntent");
 
-        offerRequest = loadSession(response.session);
+        offerRequest = loadSession(request);
         offerRequest.pickupLocation = request.slot('city');
-        saveSession(offerRequest);
+        saveSession(response, offerRequest);
 
         get("https://sixt-bot.herokuapp.com/getoffers?pickupLocation=" + offerRequest.pickupLocation +
                 "&pickupDate=" + offerRequest.pickupDate +
-                "&returnDate=" + offerRequest.returnDate + "status=change", function(error, resp, body) {
+                "&returnDate=" + offerRequest.returnDate + "&status=change", function(error, resp, body) {
 
             var offer = JSON.parse(body)[0];
 
