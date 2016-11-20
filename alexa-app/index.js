@@ -40,7 +40,7 @@ app.intent('NewBooking',
             "returnDate": "AMAZON.DATE",
             "returnTime": "AMAZON.TIME"
         }
-        , "utterances": ["book a car in {-|city} from {-|pickupDate} {-|pickupTime} to {-|returnDate} {-|returnTime}"]
+        , "utterances": ["book {me|} a car in {-|city} from {-|pickupDate} {-|pickupTime} to {-|returnDate} {-|returnTime}"]
     },
 
     function(request, response) {
@@ -99,7 +99,7 @@ app.intent('Confirm',
 
 app.intent("UsualBooking",
     {
-        "utterances": ["book a car"]
+        "utterances": ["book {me|} a car {as usual|}"]
     },
 
     function(request, response) {
