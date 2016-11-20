@@ -141,9 +141,12 @@ app.intent("NoLocation",
         offerRequest.pickupLocation = request.slot('city');
         saveSession(response, offerRequest);
 
+        console.log(offerRequest);
+
         get("https://sixt-bot.herokuapp.com/getoffers?pickupLocation=" + offerRequest.pickupLocation +
                 "&pickupDate=" + offerRequest.pickupDate +
-                "&returnDate=" + offerRequest.returnDate + "&status=change", function(error, resp, body) {
+                "&returnDate=" + offerRequest.returnDate +
+                "&status=change", function(error, resp, body) {
 
             var offer = JSON.parse(body)[0];
 
@@ -153,6 +156,8 @@ app.intent("NoLocation",
                 .shouldEndSession(false)
                 .send();
         });
+
+        return false;
     }
 );
 
