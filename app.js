@@ -102,8 +102,9 @@ app.get('/', function(req, res) {
 
 app.get('/getInfo', function(req, res) {
     var offerRequest = {};
+    var status = req.query.type;
     
-	getInfo(offerRequest, function(error, offers) {
+	getInfo(offerRequest, status,  function(error, offers) {
 		if (error) {
 			res.status(500).send({ error: 'Error getting offers' });
 		}
@@ -112,7 +113,7 @@ app.get('/getInfo', function(req, res) {
     });
 });
 
-function getInfo(offerRequest, callback) {
+function getInfo(offerRequest, status,callback) {
     
     request('https://app.sixt.de/php/mobilews/v4/offer/' + lastOfferId, 
             function(error, resp, bodyInfo) {
@@ -136,9 +137,40 @@ function getInfo(offerRequest, callback) {
             console.log("Why don't you just look it up yourself!");
             callback(null, [offer]);
         } else {
-            offer.text = "Your cars has "+  bodyInfo.group.seats + " seats";
-            console.log("Your cars has "+  bodyInfo.group.seats + " seats");
-
+            var text = "";
+            
+            switch (status){
+                    
+                case "seats":
+                    text =  "Your car has " + bodyInfo.group.seats + " seats."
+                    break;
+                    
+                case "gps":
+                    
+                    if(bodyInfo.group.navigationSystem){   
+                        text= "Yes, your car has a GPS System."
+                    } else {
+                         text= "Unfortunately, your car does not have a GPS. Don't you have Google Maps?"
+                    }
+                    break; 
+                    
+                case "price":
+                    text = "The total price for your rental is " +
+                        Math.round(bodyInfo.rates[0].price.totalPrice) + " Euros.";
+                    break;
+                case "expensive":
+                    text = "If you don't get paid enough, you could start working for Sixt. We pay well and you get a discount on all bookings. I have sent you a job offer!";
+                    sendChatMessage('Here is your job offer: https://www2.sixt.jobs/de/de/jobs/3628', 'bot');
+                    break;
+                    
+                case "nice":
+                    text = "What a stupid question! All our cars are awesome!"
+                    break;
+                    
+                    
+            } 
+            offer.text = text;
+            console.log(text);
             callback(null, [offer]);
         }
     });
